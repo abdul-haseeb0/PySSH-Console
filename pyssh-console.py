@@ -1,15 +1,29 @@
 import paramiko
 import getpass
 
-def connect(host,username,password):
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(hostname=host,username=username,password=password)
-    return client
+def connect(host, username, password):
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-def shell(client):
+        client.connect(
+            hostname=host,
+            username=username,
+            password=password,
+            timeout=10,
+            look_for_keys=False,
+            allow_agent=False
+        )
+
+        return client
+
+    except Exception as e:
+        print("Connection failed:", e)
+        exit()
+
+def shell(client,userinfo):
     while True:
-        command = input("ssh>")
+        command = input(f"[{userinfo}@Pyssh]:~$ ")
         if command.lower() == "exit":
             break
         stdin, stdout, stderr = client.exec_command(command)
@@ -17,10 +31,11 @@ def shell(client):
         print(stderr.read().decode())
 
 def main():
+    print("Welcome to PySSH-Console (beta).")
     host = input("Host: ")
-    username = input("Username: ")
+    userinfo = input("Username: ")
     password = getpass.getpass("Password: ")
-    client = connect(host,username,password)
-    shell(client)
+    client = connect(host,userinfo,password)
+    shell(client,userinfo)
     client.close()
 main()
