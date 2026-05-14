@@ -16,10 +16,6 @@ def shell(client,userinfo):
             print(stdout.read().decode())
             print(stderr.read().decode())
 
-            if stdout:
-                print(stdout)
-            if stderr:
-                print(stderr)
 
     except KeyboardInterrupt:
         print("\nSession interrupted. Exiting...")
