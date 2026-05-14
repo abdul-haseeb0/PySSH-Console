@@ -19,7 +19,7 @@ Getpass (secure password input)
 Usage
 Run the script and enter your server credentials when prompted:
 
---> python pyssh.py
+--> python3 main.py
 
 Then execute shell commands directly on the connected remote machine. Type exit to close the session.
 
