@@ -17,5 +17,4 @@ def connect(host, username, password):
         return client
 
     except Exception as e:
-        print("Connection failed:", e)
-        exit()
+        raise Exception(f"SSH connection failed: {e}")

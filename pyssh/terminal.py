@@ -1,8 +1,25 @@
 def shell(client,userinfo):
-    while True:
-        command = input(f"[{userinfo}@Pyssh]:~$ ")
-        if command.lower() == "exit":
-            break
-        stdin, stdout, stderr = client.exec_command(command)
-        print(stdout.read().decode())
-        print(stderr.read().decode())
+    try:
+        while True:
+
+            command = input(f"[{userinfo}@Pyssh]:~$ ")
+
+            if not command:
+                continue
+
+            if command.lower() in ["exit", "quit"]:
+                print("Closing session...")
+                break
+
+            stdin, stdout, stderr = client.exec_command(command)
+
+            print(stdout.read().decode())
+            print(stderr.read().decode())
+
+            if stdout:
+                print(stdout)
+            if stderr:
+                print(stderr)
+
+    except KeyboardInterrupt:
+        print("\nSession interrupted. Exiting...")
