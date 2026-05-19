@@ -16,6 +16,8 @@ def main():
         print(e)
         return
 
-    shell(client,userinfo)
+    shell(client, userinfo)
     client.close()
-main()
+
+if __name__ == "__main__":
+    main()
