@@ -1,6 +1,6 @@
 # PySSH Console
 
-> A lightweight interactive SSH client built in Python — connect to any remote server and execute shell commands straight from your terminal.
+A lightweight interactive SSH client built in Python — connect to any remote server and execute shell commands straight from your terminal.
 
 ---
 
