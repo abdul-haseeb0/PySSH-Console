@@ -1,37 +1,74 @@
-# PySSH Console
+<div align="center">
 
-A lightweight interactive SSH client built in Python — connect to any remote server and execute shell commands straight from your terminal.
+# 🔐 PySSH Console
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/paramiko-powered-0A9EDC?style=flat-square" alt="paramiko">
+  <img src="https://img.shields.io/badge/status-beta-F59E0B?style=flat-square" alt="Beta">
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-0078D4?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/license-Open%20Source-22C55E?style=flat-square" alt="License">
+</p>
+
+<p align="center">
+  A lightweight interactive SSH client in Python — connect, authenticate, and execute remote commands straight from your terminal.
+</p>
+
+</div>
 
 ---
 
-## What is PySSH Console?
+## Overview
 
-PySSH Console is a simple yet functional SSH client written in Python using the `paramiko` library. It lets you connect to a remote machine via SSH using password authentication and interact with it through a live shell — all from your terminal, without needing a full SSH client like PuTTY or OpenSSH.
+**PySSH Console** is a functional SSH client built with [`paramiko`](https://www.paramiko.org/). It establishes a real interactive shell session on a remote machine using `invoke_shell()` — giving you live, bidirectional communication with the server rather than just one-off command execution.
 
-This project started as a single-script tool and is being gradually refactored into a clean, structured Python package.
+Designed for developers, students, and sysadmins who want a minimal, readable SSH client they can understand, extend, and make their own — without relying on PuTTY, OpenSSH, or any external SSH binary.
+
+> Currently in **beta**. Core functionality is stable; additional features are actively being added.
 
 ---
 
 ## Features
 
-- Password-based SSH authentication
-- Interactive shell with real-time command execution
-- Live output streaming from remote server
-- Clean session handling with graceful exit
-- Basic error reporting for failed connections
-- Custom prompt displaying connected username
+| Feature | Description |
+|---|---|
+| 🔑 **Password Authentication** | Securely prompts for credentials using `getpass` — no plaintext passwords |
+| 🖥️ **True Interactive Shell** | Opens a real PTY shell via `invoke_shell()` for bidirectional session handling |
+| 📡 **Live Output Streaming** | Polls the channel with `recv_ready()` and streams output in real time |
+| 🧹 **Clean Output Filtering** | Strips command echo and bare prompt lines from displayed output |
+| ⏱️ **Connection Timeout** | Configurable 10-second timeout — fails fast on unreachable hosts |
+| 🛑 **Graceful Exit** | Type `exit` or `quit` to cleanly close the channel and session |
+| ⌨️ **Keyboard Interrupt Handling** | `Ctrl+C` exits the shell loop cleanly with a status message |
+| ⚠️ **Advanced Error Handling** | Connection failures surface clear, descriptive error messages |
+| 🔒 **Agent & Key Forwarding Disabled** | Explicit `look_for_keys=False`, `allow_agent=False` for controlled auth flow |
 
 ---
 
 ## Requirements
 
-- Python 3.x
-- [Paramiko](https://www.paramiko.org/)
+- **Python** 3.8+
+- **pip**
 
-Install dependencies:
+Dependencies (`requirements.txt`):
+
+```
+paramiko
+```
+
+Install:
 
 ```bash
-pip install paramiko
+pip install -r requirements.txt
+```
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/your-username/PySSH-Console.git
+cd PySSH-Console
+pip install -r requirements.txt
 ```
 
 ---
@@ -42,23 +79,54 @@ pip install paramiko
 python3 main.py
 ```
 
-You will be prompted for:
+You will be prompted for connection details:
 
 ```
+Welcome to PySSH Console (beta).
+
 Host: 192.168.1.10
 Username: john
-Password: ********
+Password:
+
+Connecting to 192.168.1.10...
+Connected Successfully to 192.168.1.10.
 ```
 
-Once connected, an interactive shell starts:
+An interactive shell session starts immediately after:
 
 ```
-[john@PySSH]:~$ ls
-[john@PySSH]:~$ cd /var/www
-[john@PySSH]:~$ exit
+[john@server]:~$ whoami
+john
+[john@server]:~$ ls /var/www
+html  logs
+[john@server]:~$ exit
+Closing session...
 ```
 
-Type `exit` or `quit` to close the session cleanly.
+Type `exit` or `quit` to close the session cleanly. Press `Ctrl+C` at any time to interrupt and exit.
+
+---
+
+## How It Works
+
+PySSH Console uses `paramiko`'s `invoke_shell()` to open a true PTY-backed channel on the remote server — the same underlying mechanism used by full SSH clients. This means the remote machine sees a real terminal, not a scripted exec session.
+
+**Connection flow:**
+
+```
+main.py
+  │
+  ├── Prompts for host / username / password
+  ├── Calls connect() → ssh_client.py
+  │     └── paramiko.SSHClient.connect() with timeout + strict auth flags
+  │
+  └── On success, calls shell() → terminal.py
+        └── invoke_shell() → opens PTY channel
+              ├── Initial banner / MOTD drained on connect
+              ├── Input loop: reads command → channel.send()
+              ├── Output loop: polls recv_ready() → filters and prints
+              └── exit / quit / KeyboardInterrupt → channel.close()
+```
 
 ---
 
@@ -67,37 +135,48 @@ Type `exit` or `quit` to close the session cleanly.
 ```
 PySSH-Console/
 │
-├── main.py              # Entry point
-└── pyssh/
-    ├── ssh_client.py    # SSH connection handler
-    └── terminal.py      # Interactive shell loop
+├── main.py                  # Entry point — prompts, connects, launches shell
+├── requirements.txt         # Python dependencies
+├── README.md
+├── LICENSE
+│
+├── pyssh/
+│   ├── ssh_client.py        # SSH connection handler (paramiko client setup)
+│   └── terminal.py          # Interactive shell loop (invoke_shell, I/O polling)
+│
+└── screenshots/
+    └── ...                  # Terminal session screenshots
 ```
 
 ---
 
 ## Security Notice
 
-> ⚠️ This tool uses `AutoAddPolicy` for host key verification, which means it **does not verify the remote server's identity**. This is acceptable for personal/lab use but is **not recommended for production environments** as it exposes you to man-in-the-middle attacks.
+> ⚠️ PySSH Console uses `AutoAddPolicy` for host key verification, meaning it **does not verify the remote server's identity**. This is intentional for lab and development use, but exposes you to **man-in-the-middle attacks** on untrusted networks.
 
-For secure usage:
-- Only connect to servers you own or trust
-- Avoid using over public/untrusted networks without a VPN
+**Safe usage guidelines:**
+
+- Only connect to servers you own or explicitly trust
+- Avoid use over public Wi-Fi or untrusted networks without a VPN
+- Do not use in production environments where host integrity must be verified
+- SSH key authentication (planned in roadmap) will improve this significantly
 
 ---
 
-## Limitations
+## Current Limitations
 
-- Password authentication only (no SSH key support yet)
-- No port forwarding
-- No SFTP / file transfer
-- No multi-session support
+- Password authentication only — no SSH key support yet
+- No custom port support (defaults to `22`)
+- No known hosts verification
+- No SFTP / file transfer capability
+- Single session only — no multiplexing
 
 ---
 
 ## Roadmap
 
 - [ ] SSH key-based authentication
-- [ ] Custom port support
+- [ ] Custom port support (`-p` flag or prompt)
 - [ ] Known hosts verification
 - [ ] SFTP file transfer
 - [ ] Config file support (`~/.pyssh/config`)
@@ -106,4 +185,10 @@ For secure usage:
 
 ## Disclaimer
 
-This tool is intended for **educational and personal use only**. Always follow proper security practices when connecting to remote servers.
+PySSH Console is intended for **educational and personal use only**. Always follow responsible security practices when connecting to remote servers. The author assumes no liability for misuse.
+
+---
+
+## License
+
+This project is open source. See [`LICENSE`](./LICENSE) for details.
