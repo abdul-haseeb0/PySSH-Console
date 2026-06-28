@@ -66,7 +66,7 @@ pip install -r requirements.txt
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/PySSH-Console.git
+git clone https://github.com/abdul-haseeb0/PySSH-Console.git
 cd PySSH-Console
 pip install -r requirements.txt
 ```
