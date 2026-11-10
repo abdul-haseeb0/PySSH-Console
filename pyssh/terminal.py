@@ -7,6 +7,7 @@ import socket
 import threading
 import logging
 
+
 logger = logging.getLogger(__name__)
 audit_logger = logging.getLogger("pyssh.audit")
 
